@@ -1,0 +1,9 @@
+[package]
+name = "custom_macro"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+
+[lib]
+proc-macro = true

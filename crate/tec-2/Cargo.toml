@@ -1,0 +1,13 @@
+[package]
+name = "tect-2"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+lalrpop-util.workspace = true
+lazy_static.workspace = true
+num_enum.workspace = true
+hex.workspace = true
+
+[build-dependencies]
+lalrpop = "0.22.2"

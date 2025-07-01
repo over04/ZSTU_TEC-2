@@ -1,0 +1,88 @@
+use std::str::FromStr;
+use crate::ast::token::{Identifier, Operator, Extra, Condition, Flag};
+use crate::ast::expr::{Expr, Term, Primary, Assignment, FlagExpr};
+
+grammar;
+
+
+CC: Extra = "CC#" => Extra::CC;
+ASSIGN: Extra = "->" => Extra::ASSIGN;
+EQUAL: Extra = "=" => Extra::EQUAL;
+GAP: Extra = "," => Extra::GAP;
+PC: Identifier = "PC" => Identifier::PC;
+ADD: Operator = "+" => Operator::Add;
+
+PCStep: Flag = PC ADD "1" ASSIGN PC  => Flag::PCStep;
+CarryFromALU: Flag = "CarryFromALU" => Flag::CarryFromALU;
+
+
+pub Identifier: Identifier = {
+    PC,
+    "AR" => Identifier::AR,
+    "MEM" => Identifier::MEM,
+    "SR" => Identifier::SR,
+    "Q" => Identifier::Q,
+    "DR" => Identifier::DR,
+    "IP" => Identifier::IP,
+    <s: r"R([0-9]|1[01])"> =>Identifier::R(u8::from_str(&s[1..]).unwrap())
+}
+
+pub Condition: Condition = {
+    Number => {
+        match <> {
+            0 => Condition::Zero,
+            1 => Condition::One,
+            _ => unreachable!()
+        }
+    },
+    "/S" => Condition::NotS,
+    "/V" => Condition::NotV,
+    "/Z" => Condition::NotZ,
+    "/C" => Condition::NotC,
+    r"[SVZC]" => Condition::IR108
+}
+
+pub Operator: Operator = {
+    ADD,
+    "-" => Operator::Minus
+}
+
+pub Expr: Expr = {
+    <assignment: Assignment?> <flag_expr: FlagExpr>  => Expr {
+        assignment,
+        flag_expr: flag_expr.map(|flag_expr| Box::new(flag_expr))
+    }
+}
+
+pub FlagExpr: Option<FlagExpr> = {
+    GAP <flag: FlagExpr_> <next: FlagExpr> => Some(FlagExpr {
+            flag,
+            next: next.map(|flag| Box::new(flag))
+        }
+    ),
+    => None
+}
+
+pub FlagExpr_: Flag = {
+    <PCStep>,
+    <CarryFromALU>,
+    CC EQUAL <Condition> => Flag::Condition(<>)
+}
+
+
+pub Assignment: Assignment = {
+    <term: Term> ASSIGN <identifier: Identifier> => Assignment { term, identifier }
+}
+
+
+
+pub Term: Term = {
+    <left: Primary> <right: (Operator Primary)?> => Term { left, right }
+}
+
+pub Primary: Primary = {
+    Number => Primary::Number(<>),
+    Identifier => Primary::Identifier(<>),
+}
+
+pub Number: u16 = <s: r"[0-9]+"> => u16::from_str(s).unwrap();
