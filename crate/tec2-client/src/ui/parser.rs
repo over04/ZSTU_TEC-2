@@ -1,7 +1,7 @@
 use crate::app::{AppUtil, Page};
 use lalrpop_util::ParseError;
 use ratatui::Frame;
-use ratatui::crossterm::event::{KeyCode, KeyEvent};
+use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
 use ratatui::layout::Alignment;
 use ratatui::prelude::{Constraint, Layout, Position, Text};
 use ratatui::widgets::{Block, List, ListItem, Paragraph, Wrap};
@@ -117,7 +117,7 @@ impl Parser {
         let parse_result = Self::parse(&user_input[USER_INPUT_PREFIX.len()..user_input.len()]);
         loop {
             if let Ok(mut result) = result.try_lock() {
-                result[cursor] = format!("{:?}", parse_result);
+                result[cursor] = parse_result.to_string();
                 util.update();
                 break;
             }
@@ -184,7 +184,7 @@ impl Page for Parser {
             Layout::vertical([Constraint::Fill(2), Constraint::Min(8)]).areas(frame.area());
         let [help_area, controller_area] =
             Layout::horizontal([Constraint::Min(8), Constraint::Fill(4)]).areas(up_area);
-        let help = Paragraph::new("1. 不要输入中文，输入中文会导致崩溃\n;2. 按<ESC>返回主页")
+        let help = Paragraph::new("1. 不要输入中文，输入中文会导致崩溃\n2. 按<ESC>返回主页")
             .block(
                 Block::bordered()
                     .title("帮助")
@@ -215,7 +215,10 @@ impl Page for Parser {
         );
         let message = List::new([ListItem::new(Text::from({
             let last_parse_result = self.last_parse_result.lock().unwrap();
-            format!("{:?}", *last_parse_result)
+            match &*last_parse_result {
+                None => "".to_string(),
+                Some(data) => data.to_string(),
+            }
         }))])
         .block(Block::bordered().title("消息"));
         frame.set_cursor_position(Position::new(
@@ -228,45 +231,49 @@ impl Page for Parser {
     }
 
     fn handle_key_event(&mut self, event: KeyEvent) {
-        let mut user_input = self.user_input.lock().unwrap();
-
-        match event.code {
-            KeyCode::Backspace | KeyCode::Delete => {
-                if self.cursor.0 > USER_INPUT_PREFIX.len() {
-                    user_input.remove(self.cursor.0 - 1);
-                    self.cursor.0 -= 1;
+        match event.kind {
+            KeyEventKind::Press | KeyEventKind::Repeat => {
+                let mut user_input = self.user_input.lock().unwrap();
+                match event.code {
+                    KeyCode::Backspace | KeyCode::Delete => {
+                        if self.cursor.0 > USER_INPUT_PREFIX.len() {
+                            user_input.remove(self.cursor.0 - 1);
+                            self.cursor.0 -= 1;
+                        }
+                    }
+                    KeyCode::Left => {
+                        self.cursor.0 = max(USER_INPUT_PREFIX.len(), self.cursor.0 - 1);
+                    }
+                    KeyCode::Right => {
+                        self.cursor.0 = min(user_input.len(), self.cursor.0 + 1);
+                    }
+                    KeyCode::Enter => {
+                        let mut controller_history = self.controller_history.lock().unwrap();
+                        self.cursor.1 = min(self.cursor.1 + 3, self.max_cursor);
+                        self.cursor.0 = USER_INPUT_PREFIX.len();
+                        controller_history.push(user_input.clone());
+                        controller_history.push("result".to_string());
+                        controller_history.push("".to_string());
+                        *user_input = USER_INPUT_PREFIX.to_string();
+                        let user_input = controller_history[controller_history.len() - 3].clone();
+                        let (cursor, controller_history, util) = (
+                            controller_history.len() - 2,
+                            self.controller_history.clone(),
+                            self.util.clone(),
+                        );
+                        std::thread::spawn(move || {
+                            Self::parse_enter(user_input, controller_history, util, cursor)
+                        });
+                    }
+                    KeyCode::Char(char) => {
+                        user_input.insert(self.cursor.0, char);
+                        self.cursor.0 += 1;
+                    }
+                    KeyCode::Esc => {
+                        self.util.back();
+                    }
+                    _ => {}
                 }
-            }
-            KeyCode::Left => {
-                self.cursor.0 = max(USER_INPUT_PREFIX.len(), self.cursor.0 - 1);
-            }
-            KeyCode::Right => {
-                self.cursor.0 = min(user_input.len(), self.cursor.0 + 1);
-            }
-            KeyCode::Enter => {
-                let mut controller_history = self.controller_history.lock().unwrap();
-                self.cursor.1 = min(self.cursor.1 + 3, self.max_cursor);
-                self.cursor.0 = USER_INPUT_PREFIX.len();
-                controller_history.push(user_input.clone());
-                controller_history.push("result".to_string());
-                controller_history.push("".to_string());
-                *user_input = USER_INPUT_PREFIX.to_string();
-                let user_input = controller_history[controller_history.len() - 3].clone();
-                let (cursor, controller_history, util) = (
-                    controller_history.len() - 2,
-                    self.controller_history.clone(),
-                    self.util.clone(),
-                );
-                std::thread::spawn(move || {
-                    Self::parse_enter(user_input, controller_history, util, cursor)
-                });
-            }
-            KeyCode::Char(char) => {
-                user_input.insert(self.cursor.0, char);
-                self.cursor.0 += 1;
-            }
-            KeyCode::Esc => {
-                self.util.back();
             }
             _ => {}
         }

@@ -1,6 +1,7 @@
 use super::{Route, Router, RouterManager};
 use ratatui::crossterm::event;
 use ratatui::crossterm::event::Event;
+use ratatui::crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use ratatui::{DefaultTerminal, Frame};
 use std::sync::{Arc, Condvar, Mutex, RwLock};
 
@@ -75,6 +76,7 @@ impl App {
     }
 
     pub fn run(mut self, mut terminal: DefaultTerminal) -> color_eyre::Result<()> {
+        enable_raw_mode()?;
         self.env.write().unwrap().running = true;
         while self.env.read().unwrap().running {
             let data = self.router_manager.pop();
@@ -121,6 +123,7 @@ impl App {
                 break;
             }
         }
+        disable_raw_mode()?;
         Ok(())
     }
 

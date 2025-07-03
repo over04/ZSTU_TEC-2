@@ -3,7 +3,7 @@ use crate::ui::Parser;
 use figlet_rs::FIGfont;
 use num_enum::TryFromPrimitive;
 use ratatui::Frame;
-use ratatui::crossterm::event::{KeyCode, KeyEvent};
+use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
 use ratatui::prelude::{Constraint, Layout, Line, Stylize};
 use ratatui::style::Modifier;
 use ratatui::widgets::Paragraph;
@@ -76,26 +76,33 @@ impl Page for Main {
     }
 
     fn handle_key_event(&mut self, event: KeyEvent) {
-        match event.code {
-            KeyCode::Char('q') => {
-                self.util.back();
+        match event.kind {
+            KeyEventKind::Press | KeyEventKind::Repeat => {
+                match event.code {
+                    KeyCode::Char('q') => {
+                        self.util.back();
+                    }
+                    KeyCode::Char('a') | KeyCode::Left => {
+                        self.menu =
+                            Menu::try_from(max(Menu::Parser as u8, self.menu.clone() as u8 - 1))
+                                .unwrap();
+                    }
+                    KeyCode::Char('d') | KeyCode::Right => {
+                        self.menu =
+                            Menu::try_from(min(Menu::Exit as u8, self.menu.clone() as u8 + 1))
+                                .unwrap();
+                    }
+                    KeyCode::Enter => match self.menu {
+                        Menu::Parser => self
+                            .util
+                            .push_route(Box::new(Parser::new(self.util.clone()))),
+                        Menu::Config => {}
+                        Menu::Exit => self.util.quit(),
+                    },
+                    _ => {}
+                };
             }
-            KeyCode::Char('a') | KeyCode::Left => {
-                self.menu =
-                    Menu::try_from(max(Menu::Parser as u8, self.menu.clone() as u8 - 1)).unwrap();
-            }
-            KeyCode::Char('d') | KeyCode::Right => {
-                self.menu =
-                    Menu::try_from(min(Menu::Exit as u8, self.menu.clone() as u8 + 1)).unwrap();
-            }
-            KeyCode::Enter => match self.menu {
-                Menu::Parser => self
-                    .util
-                    .push_route(Box::new(Parser::new(self.util.clone()))),
-                Menu::Config => {}
-                Menu::Exit => self.util.quit(),
-            },
             _ => {}
-        };
+        }
     }
 }
