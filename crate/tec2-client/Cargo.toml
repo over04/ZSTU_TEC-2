@@ -4,6 +4,7 @@ description = "An example generated using the simple template"
 authors = ["over04 <2838828011@qq.com>"]
 license = "MIT"
 edition = "2024"
+version = "0.1.0"
 
 [dependencies]
 crossterm.workspace = true
