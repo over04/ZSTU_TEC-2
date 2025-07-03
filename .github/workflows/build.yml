@@ -20,13 +20,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target:
-          - aarch64-unknown-linux-gnu
-          - x86_64-pc-windows-gnu
-        name:
-          - tec2tool
-          - tec2tool
-          - tec2tool.exe
+        include:
+          - target: aarch64-unknown-linux-gnu
+            name: tec2tool
+          - target: x86_64-pc-windows-gnu
+            name: tec2tool.exe
     steps:
       - uses: actions/checkout@v4
       - name: dependencies
