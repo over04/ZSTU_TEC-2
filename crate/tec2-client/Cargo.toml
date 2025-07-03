@@ -1,0 +1,20 @@
+[package]
+name = "tec2-client"
+description = "An example generated using the simple template"
+authors = ["over04 <2838828011@qq.com>"]
+license = "MIT"
+edition = "2024"
+
+[dependencies]
+crossterm.workspace = true
+ratatui.workspace = true
+color-eyre.workspace = true
+figlet-rs.workspace = true
+num_enum.workspace = true
+lalrpop-util.workspace = true
+tec2-parser.path = "../tec2-parser"
+hex.workspace = true
+
+[[bin]]
+name = "tec2tool"
+path = "src/main.rs"
