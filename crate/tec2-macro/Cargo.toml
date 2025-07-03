@@ -1,5 +1,5 @@
 [package]
-name = "custom_macro"
+name = "tec2-macro"
 edition.workspace = true
 version.workspace = true
 

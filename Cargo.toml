@@ -1,5 +1,5 @@
 [workspace]
-members = ["crate/tec-2", "crate/custom_macro"]
+members = ["crate/tec2-parser", "crate/tec2-macro", "crate/tec2-client"]
 resolver = "3"
 
 [workspace.package]
@@ -12,5 +12,10 @@ lalrpop-util = { version = "0.22.2", features = ["lexer", "unicode"] }
 lazy_static = "1.5.0"
 num_enum = "0.7.4"
 hex = "0.4.3"
+crossterm = "0.29.0"
+ratatui = "0.29.0"
+color-eyre = "0.6.3"
+figlet-rs = "0.1.5"
+
 
 

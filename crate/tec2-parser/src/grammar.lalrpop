@@ -85,4 +85,4 @@ pub Primary: Primary = {
     Identifier => Primary::Identifier(<>),
 }
 
-pub Number: u16 = <s: r"[0-9]+"> => u16::from_str(s).unwrap();
+pub Number: u16 = <s: r"[0-9]+"> => u16::from_str(s).unwrap_or(0);

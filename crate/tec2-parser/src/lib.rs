@@ -1,9 +1,9 @@
 use lalrpop_util::lalrpop_mod;
 pub mod ast;
 mod custom_macro;
-mod error;
+pub mod error;
 pub mod parser;
 
-pub use error::{Error, Result, CanNotBeAchievedReason};
+pub use error::{CanNotBeAchievedReason, Error, Result};
 
 lalrpop_mod!(pub grammar);

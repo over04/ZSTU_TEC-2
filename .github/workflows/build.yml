@@ -1,0 +1,49 @@
+name: build.yml
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  ubuntu:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - aarch64-unknown-linux-gnu
+          - x86_64-pc-windows-gnu
+        name:
+          - tec2tool
+          - tec2tool
+          - tec2tool.exe
+    steps:
+      - uses: actions/checkout@v4
+      - name: test
+        run: |
+          cargo test
+      - name: dependencies
+        run: |
+          cargo install cross
+      - name: Build for target ${{ matrix.target }}
+        run: |
+          cross build --target ${{ matrix.target }} --release
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/${{ matrix.name }}
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build for target
+        run: |
+          cargo build --release
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aarch64-apple-darwin
+          path: target/tec2tool
+        
+    

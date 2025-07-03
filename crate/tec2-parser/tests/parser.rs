@@ -1,5 +1,5 @@
-use tect_2::grammar;
-use tect_2::parser::parser::ExprParser;
+use tec2_parser::grammar;
+use tec2_parser::parser::parser::ExprParser;
 
 fn get_hex(input: &str) -> String {
     let mut parser = ExprParser::new(grammar::ExprParser::new().parse(input).unwrap());
