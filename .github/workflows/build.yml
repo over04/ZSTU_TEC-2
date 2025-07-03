@@ -15,7 +15,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: x86_64-unknown-linux-gnu
-          path: target/tec2tool
+          path: target/release/tec2tool
   cross:
     runs-on: ubuntu-latest
     strategy:
@@ -50,6 +50,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: aarch64-apple-darwin
-          path: target/tec2tool
+          path: target/release/tec2tool
         
     
