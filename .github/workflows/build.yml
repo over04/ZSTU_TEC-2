@@ -4,12 +4,23 @@ on:
     branches: [ "main" ]
 
 jobs:
-  ubuntu:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build for target
+        run: |
+          cargo build --release
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: x86_64-unknown-linux-gnu
+          path: target/tec2tool
+  cross:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         target:
-          - x86_64-unknown-linux-gnu
           - aarch64-unknown-linux-gnu
           - x86_64-pc-windows-gnu
         name:
@@ -18,9 +29,6 @@ jobs:
           - tec2tool.exe
     steps:
       - uses: actions/checkout@v4
-      - name: test
-        run: |
-          cargo test
       - name: dependencies
         run: |
           cargo install cross
