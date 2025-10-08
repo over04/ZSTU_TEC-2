@@ -15,7 +15,7 @@ primary -> Identifier | Number
 
 ## 语法
 
-语法分为两部分，操作和指令标志符，可以查看`crate/tec-2/src/test/tests/parser.rs`文件中的语法
+语法分为两部分，操作和指令标志符，可以查看`crate/tec-2/src/tec2-parser/tests/parser.rs`文件中的语法
 
 ### 操作
 
